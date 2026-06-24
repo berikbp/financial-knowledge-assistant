@@ -1,6 +1,6 @@
 from pathlib import Path
 from pypdf import PdfReader
-
+from src.metadata.extractor import build_document_metadata
 # pyrefly: ignore [missing-import]
 from src.ingestion.models import Document
 
@@ -21,10 +21,12 @@ def load_pdf(pdf_path: Path) -> Document:
 
     full_text = '\n'.join(pages)
 
+    metadata = build_document_metadata(str(pdf_path), pdf_path.stem, full_text)
     return Document(
         text=full_text,
         source=pdf_path.stem,
-        path=str(pdf_path)
+        path=str(pdf_path),
+        metadata=metadata
     )
 
 

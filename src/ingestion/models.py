@@ -5,6 +5,7 @@ class Document:
     text: str
     source: str
     path: str
+    metadata: dict
     
 
 @dataclass

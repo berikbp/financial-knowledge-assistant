@@ -1,7 +1,5 @@
 from src.ingestion.pdf_loader import load_documents
 from src.ingestion.chunking import chunk_documents
-from src.embeddins.bge_m3 import BGEM3Embedder
-from src.vectorstore.qdrant_store import QdrantStore
 
 def main():
     # documents = load_documents("data")
@@ -33,26 +31,36 @@ def main():
 
 
 
+    documents = load_documents("data")
+
+    print(f"Loaded {len(documents)} documents")
+
+    for doc in documents:
+        print("=" * 80)
+        print(doc.source)
+        print(doc.metadata)
+
+    chunks = chunk_documents(documents)
+
+    print(f"\nChunked {len(chunks)} chunks")
+    print("\nFirst chunk metadata:")
+    print(chunks[0].metadata)
 
 
-    embedder =BGEM3Embedder()
-    store = QdrantStore()
+
+    # embedder =BGEM3Embedder()
+    # store = QdrantStore()
     
-    query = "Какие факторы влияли на инфляцию в Казахстане в 2026 году?"
+    # query = "Какие факторы влияли на инфляцию в Казахстане в 2026 году?"
 
-    query_embedding = embedder.embed_query(query)
+    # query_embedding = embedder.embed_query(query)
 
-    results = store.search(query_vector=query_embedding, limit=5)
+    # results = store.search(query_vector=query_embedding, limit=5)
 
-    print(f"Query: {query}")
-    print("=" * 60)
-    for result in results:
+    # print(f"Query: {query}")
+    # print("=" * 60)
+    # for result in results:
 
-        print(f"Score: {result.score}")
-        print(f"Text: {result.payload['text']}")
-        print(f"Source: {result.payload['source']}")
-        print(f"Path: {result.payload['path']}")
-        print(f"Chunk ID: {result.payload['chunk_id']}")
-        print("-" * 60)
+    #     print(result.payload)
 if __name__ == "__main__":
     main()
