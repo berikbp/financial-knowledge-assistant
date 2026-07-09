@@ -1,0 +1,44 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.18.2
+    container_name: financial-rag-qdrant
+    ports:
+      - "6335:6333"
+    volumes:
+      - ./qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: financial-rag-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - qdrant
+    volumes:
+      - ./data:/app/data
+      - ./cache:/app/cache
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - HF_HOME=/app/cache/huggingface
+      - SENTENCE_TRANSFORMERS_HOME=/app/cache/sentence-transformers
+      - HF_HUB_OFFLINE=0
+      - TRANSFORMERS_OFFLINE=0
+      - EMBEDDING_MODEL_NAME=BAAI/bge-m3
+      - RERANKER_MODEL_NAME=BAAI/bge-reranker-v2-m3
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: financial-rag-frontend
+    ports:
+      - "5500:5500"
+    depends_on:
+      - api

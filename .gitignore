@@ -1,5 +1,33 @@
-.env
-__pycache__/
+# Python
 .venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Local vector DB storage
 qdrant_storage/
 
+# Generated cache
+cache/*
+!cache/build_chunk.py
+
+# Local source documents
+data/
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/

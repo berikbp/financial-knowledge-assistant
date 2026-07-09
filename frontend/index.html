@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Enterprise Financial Knowledge Assistant</title>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <main class="app">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Hybrid RAG Demo</p>
+
+        <h1>Enterprise Financial Knowledge Assistant</h1>
+
+        <p class="hero-text">
+          Ask questions over banking, macroeconomic, and regulatory documents using dense retrieval,
+          BM25, hybrid search, reranking, and cited answer generation.
+        </p>
+      </div>
+
+      <div class="backend-status">
+        <span id="backendDot" class="backend-dot unknown"></span>
+        <span id="backendText">Backend status unknown</span>
+      </div>
+    </header>
+
+    <section class="layout">
+      <section class="panel input-panel">
+        <div class="section-header">
+          <h2>Ask a Question</h2>
+          <p>Choose an example or write your own query.</p>
+        </div>
+
+        <label for="query">Question</label>
+        <textarea
+          id="query"
+          placeholder="Например: Какие факторы влияли на инфляцию в Казахстане в 2026 году?"
+        ></textarea>
+
+        <div class="examples">
+          <p class="examples-title">Example questions</p>
+
+          <div class="example-buttons">
+            <button
+              type="button"
+              class="example-button"
+              data-query="Какие факторы влияли на инфляцию в Казахстане в 2026 году?"
+              data-source="NationalBank"
+              data-year="2026"
+              data-document-type="monetary_policy_report"
+            >
+              Inflation factors
+            </button>
+
+            <button
+              type="button"
+              class="example-button"
+              data-query="What line items are included in Halyk Bank's consolidated statement of profit or loss for 2025?"
+              data-source="HalykBank"
+              data-year="2025"
+              data-document-type="financial_statement"
+            >
+              Halyk profit/loss
+            </button>
+
+            <button
+              type="button"
+              class="example-button"
+              data-query="Какие меры предусмотрены против отмывания доходов?"
+              data-source="BankingRegulation"
+              data-year="2026"
+              data-document-type="aml_law"
+            >
+              AML measures
+            </button>
+          </div>
+        </div>
+
+        <div class="filters">
+          <div class="field">
+            <label for="source">Source</label>
+            <select id="source">
+              <option value="">Any source</option>
+              <option value="NationalBank">NationalBank</option>
+              <option value="HalykBank">HalykBank</option>
+              <option value="BankingRegulation">BankingRegulation</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="year">Year</label>
+            <input id="year" type="number" placeholder="2026" />
+          </div>
+
+          <div class="field">
+            <label for="documentType">Document Type</label>
+            <select id="documentType">
+              <option value="">Any type</option>
+              <option value="monetary_policy_report">monetary_policy_report</option>
+              <option value="financial_statement">financial_statement</option>
+              <option value="annual_report">annual_report</option>
+              <option value="macro_market_overview">macro_market_overview</option>
+              <option value="inflation_report">inflation_report</option>
+              <option value="financial_stability_report">financial_stability_report</option>
+              <option value="balance_of_payments">balance_of_payments</option>
+              <option value="external_debt">external_debt</option>
+              <option value="banking_law">banking_law</option>
+              <option value="aml_law">aml_law</option>
+              <option value="unknown">unknown</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="advanced">
+          <details>
+            <summary>Advanced retrieval settings</summary>
+
+            <div class="advanced-grid">
+              <div class="field">
+                <label for="limit">Final chunks</label>
+                <input id="limit" type="number" value="5" min="1" max="10" />
+              </div>
+
+              <div class="field">
+                <label for="hybridLimit">Hybrid limit</label>
+                <input id="hybridLimit" type="number" value="20" min="5" max="50" />
+              </div>
+
+              <div class="field">
+                <label for="denseLimit">Dense limit</label>
+                <input id="denseLimit" type="number" value="30" min="5" max="100" />
+              </div>
+
+              <div class="field">
+                <label for="bm25Limit">BM25 limit</label>
+                <input id="bm25Limit" type="number" value="30" min="5" max="100" />
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="actions">
+          <button id="askButton" class="primary-button" type="button">
+            Ask
+          </button>
+
+          <button id="retrieveButton" class="secondary-button" type="button">
+            Retrieve Only
+          </button>
+
+          <button id="resetButton" class="ghost-button" type="button">
+            Reset
+          </button>
+
+          <button id="healthButton" class="ghost-button" type="button">
+            Check Backend
+          </button>
+        </div>
+      </section>
+
+      <aside class="panel info-panel">
+        <h2>Pipeline</h2>
+
+        <div class="pipeline-step">
+          <span>1</span>
+          <p>Dense retrieval with BGE-M3 and Qdrant</p>
+        </div>
+
+        <div class="pipeline-step">
+          <span>2</span>
+          <p>BM25 lexical retrieval</p>
+        </div>
+
+        <div class="pipeline-step">
+          <span>3</span>
+          <p>Hybrid fusion with Reciprocal Rank Fusion</p>
+        </div>
+
+        <div class="pipeline-step">
+          <span>4</span>
+          <p>Cross-encoder reranking with BGE reranker</p>
+        </div>
+
+        <div class="pipeline-step">
+          <span>5</span>
+          <p>Cited answer generation</p>
+        </div>
+
+        <div class="mini-note">
+          Use <strong>Retrieve Only</strong> to debug retrieval before checking the generated answer.
+        </div>
+      </aside>
+    </section>
+
+    <section id="status" class="status hidden"></section>
+
+    <section id="answerSection" class="panel result hidden">
+      <div class="section-header">
+        <h2>Answer</h2>
+        <p>Generated answer with source citations.</p>
+      </div>
+
+      <div id="answer"></div>
+    </section>
+
+    <section id="sourcesSection" class="panel result hidden">
+      <div class="section-header">
+        <h2>Sources</h2>
+        <p>Retrieved chunks and ranking scores.</p>
+      </div>
+
+      <div id="sources"></div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
