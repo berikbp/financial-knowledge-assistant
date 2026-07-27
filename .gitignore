@@ -6,28 +6,24 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 
-# Environment variables / secrets
+# Secrets
 .env
 .env.*
 !.env.example
 !.env.production.example
 
-# Local vector DB storage
+# Generated local artifacts
+cache/
 qdrant_storage/
+qdrant_storage.tar.gz
 
-# Generated cache
-cache/*
-!cache/build_chunk.py
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
 
 # Local source documents
 data/
 
-# OS files
-.DS_Store
-
 # Logs
 *.log
-
-# IDE
-.vscode/
-.idea/

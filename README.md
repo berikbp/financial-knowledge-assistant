@@ -541,60 +541,102 @@ cache/chunks.json
 qdrant_storage/
 ```
 
-## AWS EC2 Deployment
+## AWS EC2 Deployment Notes
 
-This project is prepared for a simple AWS EC2 deployment using Docker Compose.
+This project was deployed on a single AWS EC2 Ubuntu instance using Docker
+Compose.
 
-Architecture:
-
-```text
-AWS EC2 Ubuntu Server
-    |
-    +--> Qdrant container
-    |
-    +--> FastAPI backend container
-    |
-    +--> Frontend container
-```
-
-Deployment files:
+Runtime architecture:
 
 ```text
-deployment/ec2-setup.sh    Install Docker and Docker Compose plugin
-deployment/deploy.sh       Start production Docker Compose stack
-deployment/stop.sh         Stop production Docker Compose stack
+EC2 Ubuntu server
+    |
+    +-- Qdrant container
+    +-- FastAPI backend container
+    +-- Frontend container
 ```
 
-On EC2, create `.env.production`:
+The deployed services use:
+
+```text
+Frontend: http://EC2_PUBLIC_IP:5500
+API:      http://EC2_PUBLIC_IP:8000
+Qdrant:   internal Docker network only
+```
+
+Qdrant should not be exposed publicly.
+
+Required production environment file:
 
 ```env
-OPENAI_API_KEY=your_real_openai_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 
-FRONTEND_ORIGINS=http://YOUR_EC2_PUBLIC_IP:5500
+FRONTEND_ORIGINS=http://EC2_PUBLIC_IP:5500
 
 QDRANT_HOST=qdrant
 QDRANT_PORT=6333
 ```
 
-Update `frontend/config.js`:
+Set the public API URL in `frontend/config.js`:
 
 ```javascript
 window.APP_CONFIG = {
-  API_BASE_URL: "http://YOUR_EC2_PUBLIC_IP:8000"
+  API_BASE_URL: "http://EC2_PUBLIC_IP:8000"
 };
 ```
 
-Start:
+Start the production stack:
 
 ```bash
-bash deployment/deploy.sh
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-Stop:
+Check status:
 
 ```bash
-bash deployment/stop.sh
+docker compose -f docker-compose.prod.yml ps
+curl http://localhost:8000/health
+curl -I http://localhost:5500
+```
+
+For faster indexing, the Qdrant index can be built locally on a GPU machine and
+uploaded to EC2:
+
+```bash
+tar -czf qdrant_storage.tar.gz qdrant_storage
+scp -i ~/.ssh/aws/financial-rag-key.pem \
+  qdrant_storage.tar.gz ubuntu@EC2_PUBLIC_IP:~/
+```
+
+Then on EC2:
+
+```bash
+cd ~/financial-knowledge-assistant
+docker compose -f docker-compose.prod.yml down
+rm -rf qdrant_storage
+tar -xzf ~/qdrant_storage.tar.gz
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Deployment health check example:
+
+```json
+{
+  "status": "ok",
+  "chunks_loaded": 3127,
+  "retrieval_initialized": true,
+  "dense_retrieval_enabled": true,
+  "answer_generation_initialized": true
+}
+```
+
+Deployment helpers are also available:
+
+```text
+deployment/ec2-setup.sh    Install Docker and Docker Compose plugin
+deployment/deploy.sh       Start production Docker Compose stack
+deployment/stop.sh         Stop production Docker Compose stack
 ```
 
 ## Repository Layout
