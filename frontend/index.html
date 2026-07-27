@@ -11,19 +11,56 @@
 
 <body>
   <main class="app">
+    <nav class="masthead" aria-label="Primary navigation">
+      <a class="brand" href="#" aria-label="Financial RAG home">
+        <svg aria-hidden="true" viewBox="0 0 32 32">
+          <path d="M5 9.5 16 4l11 5.5v13L16 28 5 22.5z" />
+          <path d="m10 13 6-3 6 3v7l-6 3-6-3z" />
+        </svg>
+        <span>Financial RAG</span>
+      </a>
+
+      <a
+        class="repo-link"
+        href="https://github.com/berikbp/financial-knowledge-assistant"
+        target="_blank"
+        rel="noreferrer"
+      >
+        View source
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M7 17 17 7M8 7h9v9" />
+        </svg>
+      </a>
+    </nav>
+
     <header class="hero">
-      <div>
-        <p class="eyebrow">Hybrid RAG Demo</p>
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> Hybrid retrieval · cited answers</p>
 
         <h1>Enterprise Financial Knowledge Assistant</h1>
 
         <p class="hero-text">
-          Ask questions over banking, macroeconomic, and regulatory documents using dense retrieval,
-          BM25, hybrid search, reranking, and cited answer generation.
+          Inspectable RAG for banking, macroeconomic, and regulatory documents.
+          Ask in English or Russian and trace every answer back to ranked source chunks.
         </p>
+
+        <div class="proof-grid" aria-label="Project highlights">
+          <div class="proof-item">
+            <strong>3,127</strong>
+            <span>indexed chunks</span>
+          </div>
+          <div class="proof-item">
+            <strong>Hybrid</strong>
+            <span>dense + BM25</span>
+          </div>
+          <div class="proof-item">
+            <strong>3/3</strong>
+            <span>core eval cases</span>
+          </div>
+        </div>
       </div>
 
-      <div class="backend-status">
+      <div class="backend-status" role="status" aria-live="polite">
         <span id="backendDot" class="backend-dot unknown"></span>
         <span id="backendText">Backend status unknown</span>
       </div>
@@ -39,8 +76,11 @@
         <label for="query">Question</label>
         <textarea
           id="query"
+          rows="5"
+          aria-describedby="queryHelp"
           placeholder="Например: Какие факторы влияли на инфляцию в Казахстане в 2026 году?"
         ></textarea>
+        <p id="queryHelp" class="field-help">English and Russian queries are supported.</p>
 
         <div class="examples">
           <p class="examples-title">Example questions</p>
@@ -164,7 +204,8 @@
       </section>
 
       <aside class="panel info-panel">
-        <h2>Pipeline</h2>
+        <p class="eyebrow">Inspectable by design</p>
+        <h2>Retrieval pipeline</h2>
 
         <div class="pipeline-step">
           <span>1</span>
@@ -197,7 +238,7 @@
       </aside>
     </section>
 
-    <section id="status" class="status hidden"></section>
+    <section id="status" class="status hidden" role="status" aria-live="polite"></section>
 
     <section id="answerSection" class="panel result hidden">
       <div class="section-header">
@@ -216,6 +257,11 @@
 
       <div id="sources"></div>
     </section>
+
+    <footer>
+      Built as an end-to-end AI engineering case study · FastAPI, Qdrant,
+      BGE-M3, BM25, OpenAI, and Docker
+    </footer>
   </main>
 
   <script src="config.js"></script>

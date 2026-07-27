@@ -1,19 +1,29 @@
 # Enterprise Financial RAG Assistant
 
-Enterprise Financial RAG Assistant is an AI engineering project for building a retrieval-augmented assistant over financial, banking, macroeconomic, and regulatory documents.
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-123c2d?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API-123c2d?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Vector_DB-123c2d?style=flat-square)](https://qdrant.tech/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-123c2d?style=flat-square&logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![AWS](https://img.shields.io/badge/Deployed-AWS_EC2-d4a72c?style=flat-square&logo=amazonwebservices&logoColor=17211b)](https://aws.amazon.com/ec2/)
 
-The system combines:
+An inspectable, multilingual RAG system for financial, banking,
+macroeconomic, and regulatory documents. It combines semantic and lexical
+retrieval, reranking, metadata filters, and cited generation in a full-stack
+application deployed with Docker Compose on AWS EC2.
 
-- dense retrieval with BGE-M3 and Qdrant,
-- BM25 lexical search,
-- hybrid retrieval with Reciprocal Rank Fusion,
-- BGE cross-encoder reranking,
-- cited answer generation,
-- retrieval and answer evaluation,
-- FastAPI serving,
-- a lightweight frontend demo.
+![Financial RAG application](docs/screenshots/app-overview.png)
 
-The final result is a working full-stack RAG system that can answer questions over financial documents and return cited sources with retrieval scores.
+## Project Highlights
+
+| Capability | Implementation |
+| --- | --- |
+| Hybrid retrieval | BGE-M3 dense vectors + BM25 with Reciprocal Rank Fusion |
+| Precision | BGE cross-encoder reranking and metadata filters |
+| Explainability | Cited answers, source previews, and per-stage retrieval scores |
+| Multilingual data | English and Russian financial documents |
+| Evaluation | Source, type, keyword, citation, and concept coverage checks |
+| Scale | 3,127 indexed document chunks |
+| Delivery | FastAPI, browser UI, Docker Compose, and AWS EC2 |
 
 Example supported questions:
 
@@ -27,36 +37,7 @@ What line items are included in Halyk Bank's consolidated statement of profit or
 
 ## Architecture
 
-```text
-User question
-    |
-    v
-FastAPI RAG API
-    |
-    +--> Dense retrieval
-    |       |
-    |       +--> BGE-M3 embeddings
-    |       +--> Qdrant vector store
-    |
-    +--> BM25 lexical retrieval
-            |
-            +--> keyword-based search over chunks
-    |
-    v
-Hybrid retrieval with Reciprocal Rank Fusion
-    |
-    v
-BGE cross-encoder reranker
-    |
-    v
-Top retrieved chunks + metadata
-    |
-    v
-Answer generator
-    |
-    v
-Cited answer + source list
-```
+![Financial RAG system architecture](docs/architecture.svg)
 
 Runtime modules:
 
@@ -76,12 +57,13 @@ Ingestion and indexing modules:
 ```text
 src/ingestion/pdf_loader.py         PDF loading and text extraction
 src/ingestion/chunking.py           Paragraph-aware chunking
-src/ingestion/chunk_cache.py        Chunk cache saving/loading
+src/ingestion/chunk_scale.py        Chunk cache saving/loading
 src/metadata/extractor.py           Source, year, language, and document-type inference
 src/embedding/bge_embedder.py       BGE-M3 embedding wrapper
 src/vectorstore/qdrant_store.py     Qdrant collection and search logic
 scripts/index_documents.py          Builds Qdrant index
-scripts/build_chunk_cache.py        Builds cached chunk file
+scripts/index_from_cache.py         Builds Qdrant index from cached chunks
+scripts/build_chunk_cache.py        Builds the API chunk cache
 ```
 
 Evaluation modules:
@@ -175,9 +157,14 @@ FRONTEND_ORIGINS=http://127.0.0.1:5500,http://localhost:5500
 
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
+
+EMBEDDING_DEVICE=cpu
 ```
 
 Do not commit real `.env` files.
+
+On a compatible local GPU, set `EMBEDDING_DEVICE=cuda`. Keep it set to `cpu`
+for CPU-only hosts such as the current EC2 deployment.
 
 ## Local Indexing
 
@@ -196,7 +183,7 @@ python -m scripts.index_documents
 Build the chunk cache used by the API:
 
 ```bash
-python -m scripts.build_chunk_cache
+uv run python -m scripts.build_chunk_cache
 ```
 
 Expected generated folders:
@@ -458,6 +445,10 @@ The frontend includes:
 - collapsible source cards,
 - retrieval score display.
 
+The checked-in screenshot was captured from the real frontend with the
+verified 3,127-chunk health response. A concise recording outline is available
+in [`docs/demo-script.md`](docs/demo-script.md).
+
 The frontend API URL is configured in:
 
 ```text
@@ -576,6 +567,7 @@ FRONTEND_ORIGINS=http://EC2_PUBLIC_IP:5500
 
 QDRANT_HOST=qdrant
 QDRANT_PORT=6333
+EMBEDDING_DEVICE=cpu
 ```
 
 Set the public API URL in `frontend/config.js`:
@@ -647,6 +639,7 @@ data/                      Financial, macroeconomic, and regulatory PDFs
 deployment/                EC2 deployment helper scripts
 frontend/                  Browser demo UI
 scripts/                   Indexing and cache-building scripts
+docs/                      Architecture, screenshot, demo, and portfolio copy
 src/embedding/             BGE-M3 embedding wrapper
 src/eval/                  RAG evaluation pipeline
 src/generation/            Context formatting and answer generation
@@ -690,6 +683,13 @@ Current limitations:
 - Add LangSmith tracing
 - Add LangGraph workflow orchestration
 - Add CI/CD with GitHub Actions
+
+## Portfolio Material
+
+Copy-ready CV bullets, a short project description, and a LinkedIn post are
+available in [`docs/portfolio-copy.md`](docs/portfolio-copy.md). The
+60-second recording plan is in
+[`docs/demo-script.md`](docs/demo-script.md).
 
 ## Final Takeaway
 

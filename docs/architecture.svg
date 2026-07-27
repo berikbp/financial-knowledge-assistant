@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title description">
+  <title id="title">Enterprise Financial RAG architecture</title>
+  <desc id="description">A user query enters FastAPI, flows through dense and BM25 retrieval, reciprocal rank fusion, reranking, and cited answer generation.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f1e9; }
+      .grid { fill: none; stroke: #123c2d; stroke-opacity: .06; stroke-width: 1; }
+      .box { fill: #fffdf8; stroke: #aebbb3; stroke-width: 2; }
+      .box-strong { fill: #123c2d; stroke: #123c2d; stroke-width: 2; }
+      .box-accent { fill: #e9f1ec; stroke: #123c2d; stroke-width: 2; }
+      .title { fill: #17211b; font: 600 34px Georgia, serif; }
+      .subtitle { fill: #607068; font: 500 15px Inter, Arial, sans-serif; letter-spacing: 1.4px; }
+      .label { fill: #17211b; font: 700 18px Inter, Arial, sans-serif; }
+      .label-light { fill: #fffdf8; font: 700 18px Inter, Arial, sans-serif; }
+      .detail { fill: #607068; font: 500 14px Inter, Arial, sans-serif; }
+      .detail-light { fill: #dce8e1; font: 500 14px Inter, Arial, sans-serif; }
+      .step { fill: #d4a72c; font: 800 13px Inter, Arial, sans-serif; }
+      .arrow { fill: none; stroke: #123c2d; stroke-width: 2.5; marker-end: url(#arrowhead); }
+    </style>
+    <pattern id="pattern" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" class="grid"/>
+    </pattern>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0 0L8 3L0 6Z" fill="#123c2d"/>
+    </marker>
+  </defs>
+
+  <rect width="1400" height="760" class="bg"/>
+  <rect width="1400" height="760" fill="url(#pattern)"/>
+
+  <text x="72" y="72" class="title">Enterprise Financial RAG</text>
+  <text x="72" y="104" class="subtitle">INSPECTABLE HYBRID RETRIEVAL WITH CITED GENERATION</text>
+
+  <rect x="72" y="178" width="210" height="112" rx="14" class="box-strong"/>
+  <text x="96" y="218" class="step">01 · INPUT</text>
+  <text x="96" y="250" class="label-light">User question</text>
+  <text x="96" y="274" class="detail-light">English or Russian</text>
+
+  <path d="M282 234H350" class="arrow"/>
+
+  <rect x="362" y="178" width="210" height="112" rx="14" class="box"/>
+  <text x="386" y="218" class="step">02 · API</text>
+  <text x="386" y="250" class="label">FastAPI</text>
+  <text x="386" y="274" class="detail">Filters + validation</text>
+
+  <path d="M572 234H640" class="arrow"/>
+
+  <rect x="652" y="142" width="244" height="102" rx="14" class="box-accent"/>
+  <text x="676" y="180" class="step">03A · SEMANTIC</text>
+  <text x="676" y="211" class="label">Dense retrieval</text>
+  <text x="676" y="232" class="detail">BGE-M3 → Qdrant</text>
+
+  <rect x="652" y="276" width="244" height="102" rx="14" class="box-accent"/>
+  <text x="676" y="314" class="step">03B · LEXICAL</text>
+  <text x="676" y="345" class="label">BM25 retrieval</text>
+  <text x="676" y="366" class="detail">Exact-term matching</text>
+
+  <path d="M572 234H612V193H640" class="arrow"/>
+  <path d="M612 234V327H640" class="arrow"/>
+
+  <path d="M896 193H954V234H1008" class="arrow"/>
+  <path d="M896 327H954V234H1008" class="arrow"/>
+
+  <rect x="1020" y="178" width="246" height="112" rx="14" class="box-strong"/>
+  <text x="1044" y="218" class="step">04 · FUSION</text>
+  <text x="1044" y="250" class="label-light">Reciprocal Rank</text>
+  <text x="1044" y="274" class="detail-light">Unified candidate set</text>
+
+  <path d="M1143 290V370" class="arrow"/>
+
+  <rect x="1020" y="382" width="246" height="112" rx="14" class="box"/>
+  <text x="1044" y="422" class="step">05 · PRECISION</text>
+  <text x="1044" y="454" class="label">BGE reranker</text>
+  <text x="1044" y="478" class="detail">Top context selection</text>
+
+  <path d="M1020 438H936" class="arrow"/>
+
+  <rect x="678" y="382" width="246" height="112" rx="14" class="box"/>
+  <text x="702" y="422" class="step">06 · GENERATION</text>
+  <text x="702" y="454" class="label">OpenAI answer</text>
+  <text x="702" y="478" class="detail">Grounded in context</text>
+
+  <path d="M678 438H594" class="arrow"/>
+
+  <rect x="362" y="382" width="220" height="112" rx="14" class="box-strong"/>
+  <text x="386" y="422" class="step">07 · OUTPUT</text>
+  <text x="386" y="454" class="label-light">Cited answer</text>
+  <text x="386" y="478" class="detail-light">Sources + rank scores</text>
+
+  <path d="M472 494V564" class="arrow"/>
+
+  <rect x="250" y="576" width="444" height="104" rx="14" class="box-accent"/>
+  <text x="274" y="616" class="step">EVALUATION + DEBUGGING</text>
+  <text x="274" y="648" class="label">Retrieval-only · citations · coverage metrics</text>
+
+  <rect x="860" y="576" width="406" height="104" rx="14" class="box"/>
+  <text x="884" y="616" class="step">DEPLOYMENT</text>
+  <text x="884" y="648" class="label">Docker Compose · AWS EC2</text>
+  <text x="884" y="670" class="detail">Qdrant remains on the internal network</text>
+</svg>

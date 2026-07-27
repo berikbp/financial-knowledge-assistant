@@ -81,7 +81,7 @@ class RetrieveResponse(BaseModel):
 
 if not chunks_cache_exists():
     raise RuntimeError(
-        "Chunk cache not found. Run: uv run python -m cache.build_chunk"
+        "Chunk cache not found. Run: uv run python -m scripts.build_chunk_cache"
     )
 
 chunks = load_chunks()
