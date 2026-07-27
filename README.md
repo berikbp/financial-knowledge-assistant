@@ -1,143 +1,85 @@
-# Enterprise Financial RAG Assistant
+# Financial Knowledge Assistant
 
-[![Python 3.12](https://img.shields.io/badge/Python-3.12-123c2d?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-API-123c2d?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Qdrant](https://img.shields.io/badge/Qdrant-Vector_DB-123c2d?style=flat-square)](https://qdrant.tech/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-123c2d?style=flat-square&logo=docker&logoColor=white)](https://docs.docker.com/compose/)
-[![AWS](https://img.shields.io/badge/Deployed-AWS_EC2-d4a72c?style=flat-square&logo=amazonwebservices&logoColor=17211b)](https://aws.amazon.com/ec2/)
+Financial Knowledge Assistant is a RAG project for asking questions over financial documents.
 
-An inspectable, multilingual RAG system for financial, banking,
-macroeconomic, and regulatory documents. It combines semantic and lexical
-retrieval, reranking, metadata filters, and cited generation in a full-stack
-application deployed with Docker Compose on AWS EC2.
+The project uses real PDF documents from banking, macroeconomic, and regulatory sources. It extracts text from PDFs, splits the text into chunks, stores the chunks in Qdrant, and answers questions using retrieved document context.
 
-![Financial RAG application](docs/screenshots/app-overview.png)
+The goal of this project was to understand how a practical RAG system works end to end:
 
-## Project Highlights
+```text
+PDF documents -> chunks -> embeddings -> vector search -> answer with sources
+```
 
-| Capability | Implementation |
-| --- | --- |
-| Hybrid retrieval | BGE-M3 dense vectors + BM25 with Reciprocal Rank Fusion |
-| Precision | BGE cross-encoder reranking and metadata filters |
-| Explainability | Cited answers, source previews, and per-stage retrieval scores |
-| Multilingual data | English and Russian financial documents |
-| Evaluation | Source, type, keyword, citation, and concept coverage checks |
-| Scale | 3,127 indexed document chunks |
-| Delivery | FastAPI, browser UI, Docker Compose, and AWS EC2 |
+## What This Project Does
 
-Example supported questions:
+The app can answer questions such as:
+
+```text
+What line items are included in Halyk Bank's consolidated statement of profit or loss for 2025?
+```
 
 ```text
 Какие факторы влияли на инфляцию в Казахстане в 2026 году?
+```
 
-What line items are included in Halyk Bank's consolidated statement of profit or loss for 2025?
-
+```text
 Какие меры предусмотрены против отмывания доходов?
 ```
 
-## Architecture
+The answer includes sources, so it is possible to check where the information came from.
 
-![Financial RAG system architecture](docs/architecture.svg)
+## Main Features
 
-Runtime modules:
+- PDF loading and text extraction
+- Text chunking
+- Metadata extraction such as source, year, language, and document type
+- Dense retrieval using BGE-M3 embeddings
+- Qdrant vector database
+- BM25 keyword search
+- Hybrid search
+- FastAPI backend
+- Simple browser frontend
+- Basic evaluation script
+- Docker Compose deployment
+- AWS EC2 deployment
 
-```text
-api/main.py                         FastAPI routes and API schemas
-src/retrieval/pipeline.py           End-to-end retrieval pipeline
-src/retrieval/hybrid_retriever.py   Dense + BM25 hybrid retrieval with RRF
-src/retrieval/dense_retriever.py    Qdrant dense retrieval
-src/retrieval/bm25_retrieval.py     BM25 lexical retrieval
-src/retrieval/reranker.py           BGE cross-encoder reranking
-src/generation/answer_generator.py  Cited answer generation
-src/generation/context_formatter.py Retrieved context formatting
-```
-
-Ingestion and indexing modules:
-
-```text
-src/ingestion/pdf_loader.py         PDF loading and text extraction
-src/ingestion/chunking.py           Paragraph-aware chunking
-src/ingestion/chunk_scale.py        Chunk cache saving/loading
-src/metadata/extractor.py           Source, year, language, and document-type inference
-src/embedding/bge_embedder.py       BGE-M3 embedding wrapper
-src/vectorstore/qdrant_store.py     Qdrant collection and search logic
-scripts/index_documents.py          Builds Qdrant index
-scripts/index_from_cache.py         Builds Qdrant index from cached chunks
-scripts/build_chunk_cache.py        Builds the API chunk cache
-```
-
-Evaluation modules:
+## How It Works
 
 ```text
-src/eval/evaluate_rag.py            Retrieval, answer, citation, and completeness evaluation
-main.py                             Evaluation runner
+User question
+    |
+    v
+FastAPI backend
+    |
+    v
+Retrieve relevant chunks from Qdrant
+    |
+    v
+Use retrieved text as context
+    |
+    v
+Generate answer with source references
 ```
 
-Frontend and deployment modules:
+The frontend sends a question to the backend.
+The backend searches the document chunks and sends the most relevant chunks to the answer generator.
+The final answer is returned with source information.
+
+## Project Structure
 
 ```text
-frontend/index.html                 Browser demo UI
-frontend/style.css                  Frontend styling
-frontend/app.js                     Frontend API calls and rendering
-frontend/config.js                  Frontend API URL configuration
-Dockerfile.api                      FastAPI container
-Dockerfile.frontend                 Frontend container
-docker-compose.yml                  Local Docker Compose setup
-docker-compose.prod.yml             Production-style Docker Compose setup
-deployment/ec2-setup.sh             EC2 Docker installation script
-deployment/deploy.sh                Production stack startup script
-deployment/stop.sh                  Production stack shutdown script
+api/                 FastAPI backend
+data/                PDF documents
+frontend/            Simple browser UI
+src/                 Main RAG code
+src/ingestion/       PDF loading and chunking
+src/retrieval/       Dense, BM25, and hybrid retrieval
+src/generation/      Answer generation
+src/vectorstore/     Qdrant integration
+src/eval/            Evaluation scripts
+scripts/             Indexing scripts
+deployment/          EC2 helper scripts
 ```
-
-## Why This Project Matters
-
-The project is not only a simple “chat with PDFs” demo. It focuses on building a retrieval system that can be inspected, evaluated, and debugged.
-
-The main engineering idea is practical:
-
-> In financial RAG, answer quality depends on retrieval quality, chunk quality, metadata filtering, reranking, and citation discipline. A useful system needs retrieval debugging and evaluation, not only an LLM prompt.
-
-The project includes two important API modes:
-
-```text
-POST /retrieve
-```
-
-Retrieves and reranks chunks without generating an answer. This is used to debug retrieval.
-
-```text
-POST /query
-```
-
-Runs the full RAG pipeline and returns a cited answer with sources.
-
-## Results
-
-The current evaluation set contains three core cases:
-
-| Case                          | Domain                         | Expected Behavior                                    |
-| ----------------------------- | ------------------------------ | ---------------------------------------------------- |
-| `inflation_kz_2026`         | National Bank monetary policy  | Retrieve inflation-related factors from 2026 reports |
-| `halyk_financial_statement` | Halyk Bank financial statement | Retrieve profit/loss line items                      |
-| `aml_law`                   | Banking regulation / AML law   | Retrieve anti-money-laundering measures              |
-
-Latest aggregate evaluation summary:
-
-```text
-Total cases: 3
-Retrieval source pass rate: 1.00
-Retrieval type pass rate: 1.00
-Retrieval keyword pass rate: 1.00
-Answer not empty rate: 1.00
-Citation pass rate: 1.00
-Citation validity pass rate: 1.00
-Answer keyword pass rate: 1.00
-Completeness pass rate: 1.00
-Average answer keyword coverage: 0.92
-Average concept coverage: 0.92
-```
-
-The important learning was not that the system is perfect. The evaluation revealed that retrieval can return chunks with mixed topics, and the answer generator can sometimes over-associate nearby statements. This is why the project includes retrieval-only debugging and explicit limitations.
 
 ## Setup
 
@@ -147,57 +89,49 @@ Install dependencies:
 uv sync
 ```
 
-Create a local `.env` file:
+Create a `.env` file:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 
-FRONTEND_ORIGINS=http://127.0.0.1:5500,http://localhost:5500
-
 QDRANT_HOST=localhost
 QDRANT_PORT=6333
-
-EMBEDDING_DEVICE=cpu
 ```
 
-Do not commit real `.env` files.
+Do not commit your `.env` file.
 
-On a compatible local GPU, set `EMBEDDING_DEVICE=cuda`. Keep it set to `cpu`
-for CPU-only hosts such as the current EC2 deployment.
-
-## Local Indexing
-
-Start Qdrant locally:
+## Start Qdrant
 
 ```bash
-docker run -p 6333:6333 -v $(pwd)/qdrant_storage:/qdrant/storage qdrant/qdrant
+docker compose up qdrant -d
 ```
 
-Index documents into Qdrant:
+Depending on your local Docker config, Qdrant may be available on port `6333` or another mapped port.
+
+Check Qdrant:
 
 ```bash
-python -m scripts.index_documents
+curl http://localhost:6333/collections
 ```
 
-Build the chunk cache used by the API:
+## Build the Index
+
+If you want to build the index directly from PDFs:
 
 ```bash
-uv run python -m scripts.build_chunk_cache
+PYTHONPATH=. uv run python scripts/index_documents.py
 ```
 
-Expected generated folders:
+If you already have `cache/chunks.json` and want to skip PDF loading/chunking:
 
-```text
-qdrant_storage/
-cache/chunks.json
+```bash
+PYTHONPATH=. uv run python scripts/index_from_cache.py
 ```
 
-These folders are generated artifacts and should not be committed.
+The second option is faster, but it still needs to create embeddings.
 
-## Serve The API
-
-Run the FastAPI backend:
+## Run the API
 
 ```bash
 uvicorn api.main:app
@@ -215,209 +149,7 @@ Health check:
 curl http://127.0.0.1:8000/health
 ```
 
-Example response:
-
-```json
-{
-  "status": "ok",
-  "chunks_loaded": 3127
-}
-```
-
-Do not use reload for heavy model serving if GPU memory is limited, because reload can duplicate model loading.
-
-## API
-
-```text
-GET  /health
-POST /retrieve
-POST /query
-```
-
-### Retrieve Only
-
-`POST /retrieve` runs retrieval and reranking without answer generation.
-
-Example:
-
-```bash
-curl -X POST "http://127.0.0.1:8000/retrieve" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "Какие факторы влияли на инфляцию в Казахстане в 2026 году?",
-    "filters": {
-      "source": "NationalBank",
-      "year": 2026,
-      "document_type": "monetary_policy_report"
-    },
-    "limit": 5,
-    "hybrid_limit": 20,
-    "dense_limit": 30,
-    "bm25_limit": 30
-  }'
-```
-
-The response includes retrieved chunks and scores:
-
-```json
-{
-  "query": "...",
-  "filters": {
-    "source": "NationalBank",
-    "year": 2026,
-    "document_type": "monetary_policy_report"
-  },
-  "sources": [
-    {
-      "index": 1,
-      "document_name": "ДоДКП май 2026 рус",
-      "source": "NationalBank",
-      "year": 2026,
-      "document_type": "monetary_policy_report",
-      "chunk_id": 19,
-      "reranker_score": 0.9955,
-      "rrf_score": 0.0300,
-      "dense_score": 0.6776,
-      "bm25_score": 13.6824,
-      "text_preview": "..."
-    }
-  ]
-}
-```
-
-### Full Query
-
-`POST /query` runs the full RAG pipeline.
-
-```text
-query -> hybrid retrieval -> reranking -> answer generation -> cited answer
-```
-
-Example:
-
-```bash
-curl -X POST "http://127.0.0.1:8000/query" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "What line items are included in Halyk Bank'\''s consolidated statement of profit or loss for 2025?",
-    "filters": {
-      "source": "HalykBank",
-      "year": 2025,
-      "document_type": "financial_statement"
-    },
-    "limit": 5,
-    "hybrid_limit": 20,
-    "dense_limit": 30,
-    "bm25_limit": 30
-  }'
-```
-
-The response includes:
-
-```json
-{
-  "query": "...",
-  "answer": "1. Interest income calculated using the effective interest method [1]\n2. Interest expense [1]",
-  "filters": {
-    "source": "HalykBank",
-    "year": 2025,
-    "document_type": "financial_statement"
-  },
-  "sources": [
-    {
-      "index": 1,
-      "document_name": "Financial-Statement",
-      "source": "HalykBank",
-      "year": 2025,
-      "document_type": "financial_statement",
-      "chunk_id": 0,
-      "reranker_score": 0.9771,
-      "rrf_score": 0.0310,
-      "dense_score": 0.7100,
-      "bm25_score": 12.4000,
-      "text_preview": "..."
-    }
-  ]
-}
-```
-
-## Demo Examples
-
-### Inflation Factors
-
-Input:
-
-```text
-Какие факторы влияли на инфляцию в Казахстане в 2026 году?
-```
-
-Suggested filters:
-
-```json
-{
-  "source": "NationalBank",
-  "year": 2026,
-  "document_type": "monetary_policy_report"
-}
-```
-
-Expected behavior:
-
-```text
-The system retrieves National Bank monetary policy chunks and returns cited inflation-related factors.
-```
-
-### Halyk Financial Statement
-
-Input:
-
-```text
-What line items are included in Halyk Bank's consolidated statement of profit or loss for 2025?
-```
-
-Suggested filters:
-
-```json
-{
-  "source": "HalykBank",
-  "year": 2025,
-  "document_type": "financial_statement"
-}
-```
-
-Expected behavior:
-
-```text
-The system retrieves Halyk Bank financial statement chunks and returns cited profit/loss line items.
-```
-
-### AML Law
-
-Input:
-
-```text
-Какие меры предусмотрены против отмывания доходов?
-```
-
-Suggested filters:
-
-```json
-{
-  "source": "BankingRegulation",
-  "year": 2026,
-  "document_type": "aml_law"
-}
-```
-
-Expected behavior:
-
-```text
-The system retrieves AML law chunks and returns cited anti-money-laundering measures.
-```
-
-## Frontend Demo
-
-Run the frontend:
+## Run the Frontend
 
 ```bash
 cd frontend
@@ -430,70 +162,47 @@ Open:
 http://127.0.0.1:5500
 ```
 
-The frontend includes:
-
-- example question buttons,
-- metadata filters,
-- advanced retrieval settings,
-- full RAG answer mode,
-- retrieve-only debug mode,
-- backend health check,
-- loading and error states,
-- request duration,
-- answer cards,
-- citation badges,
-- collapsible source cards,
-- retrieval score display.
-
-The checked-in screenshot was captured from the real frontend with the
-verified 3,127-chunk health response. A concise recording outline is available
-in [`docs/demo-script.md`](docs/demo-script.md).
-
-The frontend API URL is configured in:
+## API Endpoints
 
 ```text
-frontend/config.js
+GET  /health
+POST /retrieve
+POST /query
 ```
 
-Local version:
+`/retrieve` returns retrieved chunks only.
 
-```javascript
-window.APP_CONFIG = {
-  API_BASE_URL: "http://127.0.0.1:8000"
-};
-```
+`/query` returns the final answer with sources.
 
-For EC2 deployment, change it to:
+Example:
 
-```javascript
-window.APP_CONFIG = {
-  API_BASE_URL: "http://YOUR_EC2_PUBLIC_IP:8000"
-};
+```bash
+curl -X POST "http://127.0.0.1:8000/query" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What line items are included in Halyk Bank consolidated statement of profit or loss for 2025?",
+    "filters": {
+      "source": "HalykBank",
+      "document_type": "financial_statement"
+    },
+    "limit": 5
+  }'
 ```
 
 ## Evaluation
 
-Run the evaluation pipeline:
+Run:
 
 ```bash
-python main.py
+PYTHONPATH=. uv run python main.py
 ```
 
-The evaluator checks:
+The evaluation checks whether retrieval returns the expected document sources and whether the generated answers contain expected citations and concepts.
 
-- retrieved source correctness,
-- retrieved document type correctness,
-- expected keyword coverage in retrieved chunks,
-- answer non-empty status,
-- citation presence,
-- citation validity,
-- answer keyword coverage,
-- concept completeness,
-- aggregate summary metrics.
-
-Example output:
+Current small benchmark result:
 
 ```text
+Total cases: 3
 Retrieval source pass rate: 1.00
 Retrieval type pass rate: 1.00
 Retrieval keyword pass rate: 1.00
@@ -502,62 +211,56 @@ Average answer keyword coverage: 0.92
 Average concept coverage: 0.92
 ```
 
-## Docker
+This is only a small test set, not a complete benchmark.
 
-Build and run the production-style local stack:
+## Docker Deployment
 
-```bash
-docker compose -f docker-compose.prod.yml up --build
-```
-
-Stop:
+Start the production Docker Compose stack:
 
 ```bash
-docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml up -d
 ```
 
-Services:
+Check containers:
 
-```text
-Qdrant:   http://127.0.0.1:6333
-API:      http://127.0.0.1:8000
-Frontend: http://127.0.0.1:5500
+```bash
+docker compose -f docker-compose.prod.yml ps
 ```
 
-The production compose file expects:
+Check backend:
 
-```text
-.env.production
-cache/chunks.json
-qdrant_storage/
+```bash
+curl http://localhost:8000/health
 ```
 
-## AWS EC2 Deployment Notes
+Check frontend:
 
-This project was deployed on a single AWS EC2 Ubuntu instance using Docker
-Compose.
+```bash
+curl -I http://localhost:5500
+```
 
-Runtime architecture:
+## AWS EC2 Deployment
+
+The project was deployed on one AWS EC2 Ubuntu instance using Docker Compose.
 
 ```text
-EC2 Ubuntu server
+EC2 server
     |
     +-- Qdrant container
     +-- FastAPI backend container
     +-- Frontend container
 ```
 
-The deployed services use:
+Public services:
 
 ```text
 Frontend: http://EC2_PUBLIC_IP:5500
 API:      http://EC2_PUBLIC_IP:8000
-Qdrant:   internal Docker network only
 ```
 
-Qdrant should not be exposed publicly.
+Qdrant should stay private inside Docker and should not be exposed publicly.
 
-Required production environment file:
+Example production environment file:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
@@ -567,145 +270,50 @@ FRONTEND_ORIGINS=http://EC2_PUBLIC_IP:5500
 
 QDRANT_HOST=qdrant
 QDRANT_PORT=6333
-EMBEDDING_DEVICE=cpu
 ```
 
-Set the public API URL in `frontend/config.js`:
+For faster indexing, I built the Qdrant index locally on my laptop and uploaded `qdrant_storage` to EC2.
 
-```javascript
-window.APP_CONFIG = {
-  API_BASE_URL: "http://EC2_PUBLIC_IP:8000"
-};
-```
+## Notes
 
-Start the production stack:
+The project currently uses:
 
-```bash
-docker compose -f docker-compose.prod.yml up -d
-```
+- BGE-M3 for embeddings
+- Qdrant for vector search
+- BM25 for keyword search
+- FastAPI for serving
+- OpenAI API for answer generation
 
-Check status:
-
-```bash
-docker compose -f docker-compose.prod.yml ps
-curl http://localhost:8000/health
-curl -I http://localhost:5500
-```
-
-For faster indexing, the Qdrant index can be built locally on a GPU machine and
-uploaded to EC2:
-
-```bash
-tar -czf qdrant_storage.tar.gz qdrant_storage
-scp -i ~/.ssh/aws/financial-rag-key.pem \
-  qdrant_storage.tar.gz ubuntu@EC2_PUBLIC_IP:~/
-```
-
-Then on EC2:
-
-```bash
-cd ~/financial-knowledge-assistant
-docker compose -f docker-compose.prod.yml down
-rm -rf qdrant_storage
-tar -xzf ~/qdrant_storage.tar.gz
-docker compose -f docker-compose.prod.yml up -d
-```
-
-Deployment health check example:
-
-```json
-{
-  "status": "ok",
-  "chunks_loaded": 3127,
-  "retrieval_initialized": true,
-  "dense_retrieval_enabled": true,
-  "answer_generation_initialized": true
-}
-```
-
-Deployment helpers are also available:
-
-```text
-deployment/ec2-setup.sh    Install Docker and Docker Compose plugin
-deployment/deploy.sh       Start production Docker Compose stack
-deployment/stop.sh         Stop production Docker Compose stack
-```
-
-## Repository Layout
-
-```text
-api/                       FastAPI app
-data/                      Financial, macroeconomic, and regulatory PDFs
-deployment/                EC2 deployment helper scripts
-frontend/                  Browser demo UI
-scripts/                   Indexing and cache-building scripts
-docs/                      Architecture, screenshot, demo, and portfolio copy
-src/embedding/             BGE-M3 embedding wrapper
-src/eval/                  RAG evaluation pipeline
-src/generation/            Context formatting and answer generation
-src/ingestion/             PDF loading, chunking, and chunk cache
-src/metadata/              Metadata extraction
-src/retrieval/             Dense, BM25, hybrid retrieval, and reranking
-src/vectorstore/           Qdrant integration
-Dockerfile.api             Backend Dockerfile
-Dockerfile.frontend        Frontend Dockerfile
-docker-compose.prod.yml    Production-style compose file
-```
+The reranker can be disabled on small CPU servers because it can make the app slower.
 
 ## Limitations
 
-This project is an engineering prototype, not a production financial assistant.
+This is a learning and portfolio project, not a production financial assistant.
 
 Current limitations:
 
-- The evaluation set is small and should be expanded.
-- The evaluator is rule-based and does not fully measure factual faithfulness.
-- Retrieved chunks can contain mixed topics, which can cause answer-generation errors.
-- Some PDF extraction artifacts remain, especially spacing issues in Russian documents.
-- The system does not yet use sentence-level context filtering.
-- The frontend is a lightweight demo UI, not a production web application.
-- EC2 deployment is simple Docker Compose deployment, not a fully managed cloud-native setup.
-- The system is not suitable for real financial customer use without compliance review, monitoring, access control, and human escalation flows.
+- The evaluation set is small.
+- PDF text extraction is not always perfect.
+- Some retrieved chunks may contain mixed information.
+- The app does not have authentication.
+- The frontend is simple.
+- The system is not suitable for real financial advice.
 
-## Future Improvements
+## What I Learned
 
-- Add claim-level faithfulness evaluation
-- Add sentence-level context filtering before answer generation
-- Improve PDF text cleaning
-- Add more evaluation cases
-- Add streaming responses
-- Add authentication
-- Add Nginx reverse proxy
-- Add HTTPS with Certbot
-- Move frontend to S3 + CloudFront
-- Move backend to ECS, App Runner, or Fargate
-- Move Qdrant to Qdrant Cloud
-- Add LangSmith tracing
-- Add LangGraph workflow orchestration
-- Add CI/CD with GitHub Actions
+This project helped me understand that RAG is not only about sending PDFs to an LLM.
 
-## Portfolio Material
-
-Copy-ready CV bullets, a short project description, and a LinkedIn post are
-available in [`docs/portfolio-copy.md`](docs/portfolio-copy.md). The
-60-second recording plan is in
-[`docs/demo-script.md`](docs/demo-script.md).
-
-## Final Takeaway
-
-For financial RAG systems, retrieval quality and evaluation matter as much as answer generation.
-
-The most useful architecture here is:
+The important parts are:
 
 ```text
-metadata-aware document ingestion
-+ dense retrieval
-+ BM25 lexical search
-+ hybrid fusion
-+ reranking
-+ cited generation
-+ retrieval-only debugging
-+ evaluation
+document cleaning
+chunking
+metadata
+embeddings
+retrieval
+evaluation
+citations
+deployment
 ```
 
-This makes the system easier to inspect, debug, and improve than a simple prompt-based PDF chatbot.
+A good RAG system needs to be testable and debuggable, not just functional.
